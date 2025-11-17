@@ -613,3 +613,4 @@ function markCurrentChapterAsRead() {
   renderChapterSelect();
   updateMarkReadButtonVisibility(1);
 }
+
