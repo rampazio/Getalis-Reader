@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -36,7 +37,7 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <main class="app-main">
       <div class="reader-layout">
-        <!-- PAINEL DE CAPÍTULOS (COLUNA ESQUERDA) -->
+        <!-- PAINEL DE CAPÍTULOS (desktop) -->
         <aside class="chapters-panel">
           <div class="chapters-header">
             <h2 class="chapters-title">CAPÍTULOS</h2>
@@ -47,14 +48,14 @@
           </ul>
         </aside>
 
-        <!-- ÁREA DE LEITURA (COLUNA DIREITA) -->
+        <!-- ÁREA DE LEITURA -->
         <section class="reader-frame">
           <header class="reader-header">
             <h2 id="reader-title" class="reader-title">Carregando capítulo…</h2>
             <p id="reader-meta" class="reader-meta"></p>
           </header>
 
-          <!-- espaço para arte do capítulo, no futuro -->
+          <!-- espaço reservado para futura arte por capítulo -->
           <div id="chapter-hero" class="chapter-hero" aria-hidden="true"></div>
 
           <article id="reader-content" class="reader-content">
@@ -64,8 +65,18 @@
           </article>
 
           <footer class="reader-footer">
-            <div class="progress-track">
-              <div id="progress-bar-inner" class="progress-bar-inner"></div>
+            <div class="progress-row">
+              <div class="progress-track">
+                <div id="progress-bar-inner" class="progress-bar-inner"></div>
+              </div>
+              <button
+                id="mark-read-btn"
+                class="mark-read-btn"
+                type="button"
+                hidden
+              >
+                Lido ✓
+              </button>
             </div>
             <p class="progress-label">Progresso da leitura</p>
           </footer>
@@ -93,9 +104,7 @@
           ✕
         </button>
       </header>
-      <div id="lore-modal-body" class="lore-modal-body">
-        <!-- conteúdo da lore via JS -->
-      </div>
+      <div id="lore-modal-body" class="lore-modal-body"></div>
     </div>
   </div>
 
