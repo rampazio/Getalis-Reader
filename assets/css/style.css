@@ -147,21 +147,6 @@ textarea {
   color: #82e6ff;
 }
 
-/* Botão de capítulos – aparece só no mobile */
-.chapters-toggle {
-  display: none; /* desktop: escondido */
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 220, 0.7);
-  background: rgba(15, 23, 42, 0.9);
-  color: #e5edff;
-  font-size: 0.8rem;
-  padding: 6px 12px;
-  cursor: pointer;
-  align-items: center;
-  gap: 6px;
-}
-
-
 /* =========================================================
    Layout do leitor
    ========================================================= */
@@ -237,6 +222,7 @@ textarea {
   cursor: pointer;
   text-align: left;
   transition: 140ms ease-out;
+  position: relative;
 }
 
 .chapters-item-btn:hover {
@@ -250,6 +236,15 @@ textarea {
     radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.26) 0, transparent 60%),
     rgba(15, 23, 42, 0.98);
   box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+}
+
+.chapters-item-btn.is-read::before {
+  content: "✓";
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font-size: 0.78rem;
+  color: #4ade80;
 }
 
 .chapters-item-title {
@@ -325,13 +320,20 @@ textarea {
   display: none; /* só aparece quando tiver imagem */
 }
 
+/* Barra de progresso + botão Lido */
+
 .reader-footer {
   margin-top: 6px;
 }
 
-/* Barra de progresso */
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .progress-track {
+  flex: 1;
   width: 100%;
   height: 3px;
   border-radius: 999px;
@@ -352,6 +354,24 @@ textarea {
   margin: 4px 0 0;
   font-size: 0.75rem;
   color: #7c86af;
+}
+
+.mark-read-btn {
+  margin-top: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(52, 211, 153, 0.8);
+  background: rgba(21, 128, 61, 0.2);
+  color: #bbf7d0;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: 140ms ease-out;
+  white-space: nowrap;
+}
+
+.mark-read-btn:hover {
+  border-color: #4ade80;
+  background: rgba(22, 163, 74, 0.3);
 }
 
 /* =========================================================
@@ -510,35 +530,13 @@ body.has-modal-open {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* Botão de capítulos visível no mobile */
-  .chapters-toggle {
-    display: inline-flex;
-    margin-bottom: 10px;
-  }
-
-  /* Painel vira overlay flutuante no mobile */
+  /* Esconde painel de capítulos no mobile
+     (uso só o select lá em cima) */
   .chapters-panel {
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    top: 76px; /* abaixo do header */
-    max-width: none;
-    width: auto;
-    max-height: 60vh;
-    z-index: 40;
-    display: none; /* escondido por padrão */
-  }
-
-  .chapters-panel.is-open {
-    display: flex; /* quando abrirmos via JS */
-  }
-
-  .chapters-list {
-    max-height: 50vh;
+    display: none;
   }
 
   .reader-content {
     max-height: calc(100vh - 260px);
   }
 }
-
