@@ -6,8 +6,10 @@ console.log("[Getalis Reader] app.js carregado");
 // ===============================
 // CONFIG SUPABASE
 // ===============================
+// 🔧 TROCAR PELOS DADOS DO SEU PROJETO
 const SUPABASE_URL = "https://cfomvzomzqfbfxrttymz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmb212em9tenFmYmZ4cnR0eW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMzM4MzYsImV4cCI6MjA3ODgwOTgzNn0.UbxU61ug7SWsQFvY8xWZ77L0NIEzp7k-mxoISFS1UEo";
+
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -16,12 +18,19 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ===============================
 let CAPITULOS = [];
 
+const STORAGE_SCROLL_KEY = "getalis_reader_scroll_v1";
+const STORAGE_READ_KEY = "getalis_reader_read_v1";
+
+let scrollMap = loadScrollMap();
+let readMap = loadReadMap();
+
+// Glossário base (exemplo – você pode mexer livremente)
 const GLOSSARIO = {
   nevoa: {
     titulo: "Névoa",
     resumo: "A Névoa é a força misteriosa que separa mundos e transforma aqueles que a atravessam.",
     descricao:
-      "A Névoa é uma entidade quase viva, um fenômeno arcano que envolve Getalis e outros mundos. É responsável pelas Marcas, desaparecimentos e sussurros que muitos chamam de loucura.",
+      "A Névoa é um fenômeno arcano que envolve Getalis e outros mundos. Responsável pelas Marcas, desaparecimentos e sussurros que muitos chamam de loucura.",
   },
   sangreal: {
     titulo: "Sangreal",
@@ -55,46 +64,52 @@ document.addEventListener("DOMContentLoaded", () => {
 // CACHE DE ELEMENTOS
 // ===============================
 function cacheElements() {
+  // topo / seletores
   els.chapterSelect = document.getElementById("chapter-select");
+  els.fontInc = document.getElementById("font-inc");
+  els.fontDec = document.getElementById("font-dec");
+
+  // painel / lista
+  els.chaptersPanel = document.querySelector(".chapters-panel");
   els.chaptersList = document.getElementById("chapters-list");
   els.chaptersCounter = document.getElementById("chapters-counter");
-  els.chaptersPanel = document.querySelector(".chapters-panel");   // ← NOVO
-  els.chaptersToggle = document.getElementById("chapters-toggle"); // ← NOVO
 
+  // leitor
   els.readerTitle = document.getElementById("reader-title");
   els.readerMeta = document.getElementById("reader-meta");
   els.readerContent = document.getElementById("reader-content");
   els.chapterHero = document.getElementById("chapter-hero");
-
-  els.fontInc = document.getElementById("font-inc");
-  els.fontDec = document.getElementById("font-dec");
   els.progressBarInner = document.getElementById("progress-bar-inner");
+  els.markReadBtn = document.getElementById("mark-read-btn");
 
+  // tooltip
   els.tooltip = document.getElementById("term-tooltip");
   els.tooltipTitle = document.getElementById("term-tooltip-title");
   els.tooltipBody = document.getElementById("term-tooltip-body");
 
+  // modal de lore
   els.loreModal = document.getElementById("lore-modal");
   els.loreModalBackdrop = document.getElementById("lore-modal-backdrop");
   els.loreModalTitle = document.getElementById("lore-modal-title");
   els.loreModalSubtitle = document.getElementById("lore-modal-subtitle");
   els.loreModalBody = document.getElementById("lore-modal-body");
   els.loreModalClose = document.getElementById("lore-modal-close");
-
-
 }
 
 // ===============================
 // UI GLOBAL
 // ===============================
 function setupGlobalUI() {
+  // fonte
   if (els.fontInc) els.fontInc.addEventListener("click", () => adjustFontSize(1));
   if (els.fontDec) els.fontDec.addEventListener("click", () => adjustFontSize(-1));
 
+  // progresso + salvar scroll
   if (els.readerContent) {
     els.readerContent.addEventListener("scroll", handleScrollProgress, { passive: true });
   }
 
+  // select de capítulo
   if (els.chapterSelect) {
     els.chapterSelect.addEventListener("change", (e) => {
       const idx = parseInt(e.target.value, 10);
@@ -102,27 +117,60 @@ function setupGlobalUI() {
     });
   }
 
+  // modal de lore
   if (els.loreModalClose) els.loreModalClose.addEventListener("click", closeLoreModal);
   if (els.loreModalBackdrop) els.loreModalBackdrop.addEventListener("click", closeLoreModal);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeLoreModal();
+    if (e.key === "Escape") {
+      closeLoreModal();
+    }
   });
-  // Mobile: abrir/fechar painel de capítulos
-  if (els.chaptersToggle && els.chaptersPanel) {
-    els.chaptersToggle.addEventListener("click", () => {
-      els.chaptersPanel.classList.toggle("is-open");
-    });
+
+  // botão "Lido"
+  if (els.markReadBtn) {
+    els.markReadBtn.addEventListener("click", markCurrentChapterAsRead);
   }
 
-
   applyFontSize();
-  
 }
 
+// ===============================
+// LOCAL STORAGE HELPERS
+// ===============================
+function loadScrollMap() {
+  try {
+    const raw = localStorage.getItem(STORAGE_SCROLL_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
+function saveScrollMap() {
+  try {
+    localStorage.setItem(STORAGE_SCROLL_KEY, JSON.stringify(scrollMap));
+  } catch {
+    // ignore
+  }
+}
 
+function loadReadMap() {
+  try {
+    const raw = localStorage.getItem(STORAGE_READ_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
+function saveReadMap() {
+  try {
+    localStorage.setItem(STORAGE_READ_KEY, JSON.stringify(readMap));
+  } catch {
+    // ignore
+  }
+}
 
 // ===============================
 // SUPABASE – CARREGAR CAPÍTULOS
@@ -158,7 +206,7 @@ async function loadInitialData() {
     renderChaptersList();
 
     if (CAPITULOS.length > 0) {
-      selectChapter(0);
+      selectChapter(state.currentChapterIndex || 0);
     } else {
       showError(
         "Nenhum capítulo cadastrado",
@@ -186,7 +234,7 @@ function mapSupabaseChapterToClient(row) {
   return {
     id: row.id,
     titulo: row.title || "Capítulo sem título",
-    slug: row.slug,
+    slug: row.slug || String(row.id),
     status: row.status || "NOVO",
     ordem: row.sort_order ?? 0,
     dataPublicacao: row.published_at ? new Date(row.published_at) : null,
@@ -221,7 +269,20 @@ function renderChapterSelect() {
   CAPITULOS.forEach((cap, index) => {
     const opt = document.createElement("option");
     opt.value = String(index);
-    opt.textContent = cap.titulo;
+
+    const key = getChapterKey(cap);
+    const isRead = !!readMap[key];
+    const isNew = cap.status === "NOVO" && !isRead;
+
+    let label = cap.titulo;
+
+    if (isRead) {
+      label = `✓ ${label}`;
+    } else if (isNew) {
+      label = `• ${label} (novo)`;
+    }
+
+    opt.textContent = label;
     els.chapterSelect.appendChild(opt);
   });
 
@@ -232,8 +293,6 @@ function renderChaptersList() {
   if (!els.chaptersList) return;
   els.chaptersList.innerHTML = "";
 
-  
-
   CAPITULOS.forEach((cap, index) => {
     const li = document.createElement("li");
     li.className = "chapters-item";
@@ -242,6 +301,7 @@ function renderChaptersList() {
     btn.type = "button";
     btn.className = "chapters-item-btn";
     btn.dataset.index = String(index);
+    btn.dataset.chapterKey = getChapterKey(cap);
 
     const titleEl = document.createElement("span");
     titleEl.className = "chapters-item-title";
@@ -255,15 +315,15 @@ function renderChaptersList() {
 
     btn.appendChild(titleEl);
     btn.appendChild(metaEl);
-    btn.addEventListener("click", () => {
-  // troca o capítulo normalmente
-  selectChapter(index);
 
-  // se for mobile (largura até 900px), fecha o painel depois da escolha
-  if (window.innerWidth <= 900 && els.chaptersPanel) {
-    els.chaptersPanel.classList.remove("is-open");
-  }
-});
+    const chapterKey = getChapterKey(cap);
+    if (readMap[chapterKey]) {
+      btn.classList.add("is-read");
+    }
+
+    btn.addEventListener("click", () => {
+      selectChapter(index);
+    });
 
     li.appendChild(btn);
     els.chaptersList.appendChild(li);
@@ -303,6 +363,7 @@ function selectChapter(index) {
   renderChapterContent(cap);
   highlightSelectedChapter();
   resetScrollAndProgress();
+  restoreScrollForChapter(cap);
 }
 
 function renderChapterContent(cap) {
@@ -324,10 +385,13 @@ function highlightSelectedChapter() {
   const buttons = els.chaptersList.querySelectorAll(".chapters-item-btn");
   buttons.forEach((btn) => {
     const idx = parseInt(btn.dataset.index || "-1", 10);
-    if (idx === state.currentChapterIndex) {
-      btn.classList.add("is-active");
+    const chapterKey = btn.dataset.chapterKey;
+    btn.classList.toggle("is-active", idx === state.currentChapterIndex);
+
+    if (readMap[chapterKey]) {
+      btn.classList.add("is-read");
     } else {
-      btn.classList.remove("is-active");
+      btn.classList.remove("is-read");
     }
   });
 }
@@ -443,7 +507,7 @@ function closeLoreModal() {
 }
 
 // ===============================
-// FONTE & PROGRESSO
+// FONTE & PROGRESSO + SCROLL
 // ===============================
 function handleScrollProgress() {
   if (!els.readerContent || !els.progressBarInner) return;
@@ -455,7 +519,19 @@ function handleScrollProgress() {
   const maxScroll = scrollHeight - clientHeight;
   const progress = maxScroll > 0 ? scrollTop / maxScroll : 0;
 
+  // barra
   els.progressBarInner.style.transform = `scaleX(${progress})`;
+
+  // salva posição (fracionária)
+  const cap = CAPITULOS[state.currentChapterIndex];
+  if (cap) {
+    const key = getChapterKey(cap);
+    scrollMap[key] = progress;
+    saveScrollMap();
+  }
+
+  // controla botão "Lido"
+  updateMarkReadButtonVisibility(progress);
 }
 
 function resetScrollAndProgress() {
@@ -471,4 +547,69 @@ function adjustFontSize(delta) {
 function applyFontSize() {
   if (!els.readerContent) return;
   els.readerContent.style.fontSize = `${state.baseFontSize}px`;
+}
+
+// ===============================
+// SCROLL POR CAPÍTULO
+// ===============================
+function getChapterKey(cap) {
+  return cap.slug || String(cap.id);
+}
+
+function restoreScrollForChapter(cap) {
+  if (!els.readerContent) return;
+  const key = getChapterKey(cap);
+  const stored = scrollMap[key];
+  if (stored == null) {
+    updateMarkReadButtonVisibility(0);
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    const scrollHeight = els.readerContent.scrollHeight;
+    const clientHeight = els.readerContent.clientHeight;
+    const maxScroll = scrollHeight - clientHeight;
+    const target = maxScroll * stored;
+    els.readerContent.scrollTop = target;
+
+    const progress = maxScroll > 0 ? target / maxScroll : 0;
+    if (els.progressBarInner) {
+      els.progressBarInner.style.transform = `scaleX(${progress})`;
+    }
+    updateMarkReadButtonVisibility(progress);
+  });
+}
+
+// ===============================
+// MARCAR CAPÍTULO COMO LIDO
+// ===============================
+function updateMarkReadButtonVisibility(progress) {
+  if (!els.markReadBtn) return;
+  const cap = CAPITULOS[state.currentChapterIndex];
+  if (!cap) {
+    els.markReadBtn.hidden = true;
+    return;
+  }
+
+  const key = getChapterKey(cap);
+  const alreadyRead = !!readMap[key];
+
+  if (alreadyRead) {
+    els.markReadBtn.hidden = true;
+  } else {
+    const threshold = 0.98;
+    els.markReadBtn.hidden = !(progress >= threshold);
+  }
+}
+
+function markCurrentChapterAsRead() {
+  const cap = CAPITULOS[state.currentChapterIndex];
+  if (!cap) return;
+  const key = getChapterKey(cap);
+
+  readMap[key] = true;
+  saveReadMap();
+  highlightSelectedChapter();
+  renderChapterSelect();
+  updateMarkReadButtonVisibility(1);
 }
