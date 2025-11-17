@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Getalis Editor · Livro I – Sombras e Névoa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    /* Pequenos ajustes apenas para o editor */
+    .editor-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 10px clamp(16px, 4vw, 32px) 20px;
+    }
+
+    .editor-panel {
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18) 0, transparent 55%),
+        rgba(10, 17, 40, 0.96);
+      border: 1px solid rgba(129, 140, 248, 0.6);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.9);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .editor-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.6);
+    }
+
+    .editor-panel-title {
+      margin: 0;
+      font-size: 0.82rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #cbd5f5;
+    }
+
+    .editor-panel-sub {
+      margin: 2px 0 0;
+      font-size: 0.76rem;
+      color: #7c86af;
+    }
+
+    .editor-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      overflow: auto;
+      max-height: calc(100vh - 210px);
+    }
+
+    .editor-list-item {
+      margin-bottom: 6px;
+    }
+
+    .editor-chapter-btn {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      background: linear-gradient(
+        to right,
+        rgba(15, 23, 42, 0.96),
+        rgba(15, 23, 42, 0.9)
+      );
+      padding: 8px 10px;
+      color: #cbd5f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: 140ms ease-out;
+    }
+
+    .editor-chapter-btn-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .editor-chapter-btn-title {
+      font-size: 0.82rem;
+    }
+
+    .editor-chapter-btn-date {
+      font-size: 0.72rem;
+      color: #7c86af;
+    }
+
+    .editor-chapter-btn.selected {
+      border-color: #60e3ff;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.26) 0, transparent 60%),
+                  rgba(15, 23, 42, 0.96);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+    }
+
+    .editor-main {
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.2) 0, transparent 60%),
+        rgba(10, 17, 40, 0.96);
+      border: 1px solid rgba(148, 163, 220, 0.65);
+      box-shadow: 0 18px 55px rgba(15, 23, 42, 0.9);
+      padding: 16px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .editor-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+      margin-bottom: 4px;
+    }
+
+    .editor-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.82rem;
+      color: #cbd5f5;
+    }
+
+    .editor-label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .editor-input,
+    .editor-select {
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 220, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 6px 8px;
+      color: #e5edff;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .editor-input:focus,
+    .editor-select:focus {
+      border-color: #60e3ff;
+      box-shadow: 0 0 0 1px rgba(96, 227, 255, 0.6);
+    }
+
+    .editor-textarea {
+      margin-top: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 220, 0.7);
+      background: rgba(15, 23, 42, 0.97);
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      color: #e5edff;
+      min-height: 260px;
+      resize: vertical;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    .editor-textarea:focus {
+      border-color: #60e3ff;
+      box-shadow: 0 0 0 1px rgba(96, 227, 255, 0.6);
+    }
+
+    .editor-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .editor-actions-left,
+    .editor-actions-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-primary,
+    .btn-outline,
+    .btn-danger {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #e5edff;
+      transition: 140ms ease-out;
+    }
+
+    .btn-primary {
+      border-color: #60e3ff;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.32) 0, transparent 65%),
+        rgba(15, 23, 42, 0.98);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.65);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-0.5px);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.9);
+    }
+
+    .btn-outline {
+      border-color: rgba(148, 163, 220, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+      color: #cbd5f5;
+    }
+
+    .btn-outline:hover {
+      border-color: #60e3ff;
+      color: #82e6ff;
+    }
+
+    .btn-danger {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+    }
+
+    .btn-danger:hover {
+      background: rgba(127, 29, 29, 0.85);
+      border-color: rgba(248, 113, 113, 1);
+    }
+
+    .editor-status-pill {
+      font-size: 0.72rem;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.6);
+      color: #4ade80;
+    }
+
+    .editor-info {
+      font-size: 0.75rem;
+      color: #7c86af;
+    }
+
+    /* Login view */
+
+    .view-hidden {
+      display: none !important;
+    }
+
+    .login-view {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      max-width: 360px;
+      width: 100%;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18) 0, transparent 60%),
+        rgba(10, 17, 40, 0.96);
+      border: 1px solid rgba(148, 163, 220, 0.7);
+      box-shadow: 0 22px 65px rgba(15, 23, 42, 0.95);
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .login-title {
+      margin: 0;
+      font-size: 0.95rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #82e6ff;
+    }
+
+    .login-subtitle {
+      margin: 2px 0 0;
+      font-size: 0.8rem;
+      color: #9ca3c3;
+    }
+
+    .login-form {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .login-note {
+      font-size: 0.74rem;
+      color: #6b7280;
+    }
+
+    @media (max-width: 900px) {
+      .editor-body {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .editor-panel {
+        max-height: 260px;
+      }
+
+      .editor-list {
+        max-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- VIEW: LOGIN -->
+  <div id="view-login" class="login-view">
+    <div class="login-card">
+      <div>
+        <h1 class="login-title">Getalis Editor</h1>
+        <p class="login-subtitle">Acesso restrito ao autor · Livro I – Sombras e Névoa</p>
+      </div>
+
+      <form id="login-form" class="login-form">
+        <div class="editor-field">
+          <label class="editor-label" for="login-email">E-mail</label>
+          <input id="login-email" type="email" class="editor-input" autocomplete="email" required />
+        </div>
+        <div class="editor-field">
+          <label class="editor-label" for="login-password">Senha</label>
+          <input id="login-password" type="password" class="editor-input" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+
+      <p id="login-message" class="login-note"></p>
+      <p class="login-note">
+        O usuário é criado diretamente no painel do Supabase (Auth &gt; Users).
+      </p>
+    </div>
+  </div>
+
+  <!-- VIEW: EDITOR -->
+  <div id="view-editor" class="editor-shell view-hidden">
+    <!-- Reaproveitando header visual do leitor -->
+    <header class="app-header">
+      <div class="brand-block">
+        <div class="brand-orb"></div>
+        <div>
+          <h1 class="brand-title">GETALIS – EDITOR</h1>
+          <p class="brand-subtitle">Gerenciamento de capítulos · Livro I – Sombras e Névoa</p>
+        </div>
+      </div>
+
+      <div class="top-controls">
+        <div class="book-switch">
+          <span class="book-label">MODO</span>
+          <button class="chip chip-active">Editor</button>
+          <a href="index.html" class="chip chip-disabled" style="text-decoration:none;">Leitor público</a>
+        </div>
+
+        <div class="font-switch">
+          <button id="btn-logout" class="pill-btn" type="button">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="editor-body">
+      <!-- Lista de capítulos -->
+      <aside class="editor-panel">
+        <header class="editor-panel-header">
+          <div>
+            <h2 class="editor-panel-title">Capítulos</h2>
+            <p class="editor-panel-sub" id="chapters-count">0 capítulo(s)</p>
+          </div>
+          <button id="btn-new-chapter" class="btn-outline" type="button">Novo</button>
+        </header>
+
+        <ul id="chapters-list" class="editor-list">
+          <!-- preenchido via JS -->
+        </ul>
+      </aside>
+
+      <!-- Formulário principal -->
+      <section class="editor-main">
+        <header class="editor-panel-header" style="border-bottom:none;">
+          <div>
+            <h2 class="editor-panel-title">Edição de capítulo</h2>
+            <p class="editor-panel-sub" id="editor-status-label">Nenhum capítulo selecionado.</p>
+          </div>
+          <span id="chapter-status-pill" class="editor-status-pill" style="display:none;">NOVO</span>
+        </header>
+
+        <form id="chapter-form" autocomplete="off">
+          <div class="editor-form-grid">
+            <div class="editor-field">
+              <label class="editor-label" for="field-title">Título</label>
+              <input id="field-title" class="editor-input" type="text" required />
+            </div>
+
+            <div class="editor-field">
+              <label class="editor-label" for="field-slug">Slug (URL amigável)</label>
+              <input id="field-slug" class="editor-input" type="text" placeholder="ex: capitulo-1-a-nevoa-chama" required />
+            </div>
+
+            <div class="editor-field">
+              <label class="editor-label" for="field-date">Data de publicação</label>
+              <input id="field-date" class="editor-input" type="date" />
+            </div>
+
+            <div class="editor-field">
+              <label class="editor-label" for="field-status">Status</label>
+              <select id="field-status" class="editor-select">
+                <option value="NOVO">NOVO</option>
+                <option value="REVISADO">REVISADO</option>
+                <option value="RASCUNHO">RASCUNHO</option>
+              </select>
+            </div>
+
+            <div class="editor-field">
+              <label class="editor-label" for="field-order">Ordem</label>
+              <input id="field-order" class="editor-input" type="number" value="0" />
+            </div>
+
+            <div class="editor-field">
+              <label class="editor-label" for="field-hero">Imagem de capa (URL opcional)</label>
+              <input id="field-hero" class="editor-input" type="text" placeholder="assets/img/cap1-hero.jpg" />
+            </div>
+          </div>
+
+          <div class="editor-field">
+            <label class="editor-label" for="field-content">Conteúdo (parágrafos separados por linhas em branco)</label>
+            <textarea id="field-content" class="editor-textarea" spellcheck="false"></textarea>
+          </div>
+
+          <div class="editor-actions">
+            <div class="editor-actions-left">
+              <button id="btn-save" type="submit" class="btn-primary">Salvar capítulo</button>
+              <button id="btn-duplicate" type="button" class="btn-outline">Duplicar</button>
+            </div>
+
+            <div class="editor-actions-right">
+              <button id="btn-delete" type="button" class="btn-danger">Excluir</button>
+              <span id="save-info" class="editor-info"></span>
+            </div>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Editor usa módulo JS separado -->
+  <script type="module" src="assets/js/editor.js"></script>
+</body>
+</html>

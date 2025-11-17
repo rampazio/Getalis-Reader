@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Getalis Reader · Livro I – Sombras e Névoa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand-block">
+        <div class="brand-orb"></div>
+        <div>
+          <h1 class="brand-title">GETALIS READER</h1>
+          <p class="brand-subtitle">Livro I – Sombras e Névoa · Leitura oficial da saga</p>
+        </div>
+      </div>
+
+      <div class="top-controls">
+        <div class="book-switch">
+          <span class="book-label">Capítulo:</span>
+          <select id="chapter-select" class="select-chip">
+            <!-- opções preenchidas via JS -->
+          </select>
+        </div>
+
+        <div class="font-switch">
+          <button id="font-dec" class="pill-btn" type="button">A−</button>
+          <button id="font-inc" class="pill-btn" type="button">A+</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="app-main">
+      <div class="reader-layout">
+        <!-- PAINEL DE CAPÍTULOS (COLUNA ESQUERDA) -->
+        <aside class="chapters-panel">
+          <div class="chapters-header">
+            <h2 class="chapters-title">CAPÍTULOS</h2>
+            <p class="chapters-sub" id="chapters-counter">Carregando…</p>
+          </div>
+          <ul id="chapters-list" class="chapters-list">
+            <!-- itens preenchidos via JS -->
+          </ul>
+        </aside>
+
+        <!-- ÁREA DE LEITURA (COLUNA DIREITA) -->
+        <section class="reader-frame">
+          <header class="reader-header">
+            <h2 id="reader-title" class="reader-title">Carregando capítulo…</h2>
+            <p id="reader-meta" class="reader-meta"></p>
+          </header>
+
+          <!-- espaço para arte do capítulo, no futuro -->
+          <div id="chapter-hero" class="chapter-hero" aria-hidden="true"></div>
+
+          <article id="reader-content" class="reader-content">
+            <p class="reader-loading">
+              Iniciando Getalis Reader… Se isso ficar parado, verifique o console do navegador (F12).
+            </p>
+          </article>
+
+          <footer class="reader-footer">
+            <div class="progress-track">
+              <div id="progress-bar-inner" class="progress-bar-inner"></div>
+            </div>
+            <p class="progress-label">Progresso da leitura</p>
+          </footer>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- TOOLTIP DE TERMOS -->
+  <div id="term-tooltip" class="term-tooltip" role="tooltip" aria-hidden="true">
+    <div id="term-tooltip-title" class="term-tooltip-title"></div>
+    <div id="term-tooltip-body" class="term-tooltip-body"></div>
+  </div>
+
+  <!-- MODAL DE LORE -->
+  <div id="lore-modal-backdrop" class="lore-modal-backdrop" aria-hidden="true"></div>
+  <div id="lore-modal" class="lore-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="lore-modal-inner">
+      <header class="lore-modal-header">
+        <div>
+          <h3 id="lore-modal-title" class="lore-modal-title">Termo da Névoa</h3>
+          <p id="lore-modal-subtitle" class="lore-modal-subtitle">Detalhes da lore</p>
+        </div>
+        <button id="lore-modal-close" class="lore-modal-close" type="button" aria-label="Fechar">
+          ✕
+        </button>
+      </header>
+      <div id="lore-modal-body" class="lore-modal-body">
+        <!-- conteúdo da lore via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
